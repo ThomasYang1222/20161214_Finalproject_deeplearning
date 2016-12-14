@@ -1,0 +1,68 @@
+hello everyone,
+	I am Thomas Yang, at this file I try to lead you make the neuraltalk2 work on your computer from zero. For your better understanding, I will write this guide in Chinese.
+//----------------------------------------------------------------------------
+1.初始情景设定
+
+建议使用Linux Ubuntu 14以上，虚拟机。
+
+2.下载neutraltalk2代码包
+
+将karpathy的neutraltalk2代码包下载（第1个要下载的）到本地，使用Git Hub download功能。下载网址在此：https://github.com/karpathy/neuraltalk2
+
+3.安装neutraltalk2的说明（本文不介绍GPU版使用方法）
+
+neutraltalk2的readme原文有详细介绍，在此处我会根据原文的结构给出关键解释。
+
+a)For evaluation only（我只是随便看看）
+
+1.本程序的code使用lua语言编写，需要安装Torch运行环境（第1个要安装的）
+2.Torch里面会自带luarocks，（如果没有请安装）类似于Python里面的pip，是安装管理软件。完成第一步后，需要用它安装三个应用：nn, nngraph, image. （第2,3,4个要安装的）
+3.我们需要cjson（第5个要安装的）
+好，到此neutraltalk2的运行环境搭建完毕。
+
+b)For training（我要跑模型）
+
+1.确认自己是否有 protobuf (google的文件格式包)（如果没有请安装），安装方法sudo apt-get install libprotobuf-dev protobuf-compiler
+2.安装loadcaffe（第6个要安装的）
+3.安装torch-hdf5，h5py。（第7,8个要安装的）
+4.需要下载VGGNet。（第2要下载的） 请在原文寻找VGG-16 Caffe checkpoint,点击下载。(under Models section, "16-layer model" bullet point). Put the two files (the prototxt configuration file and the proto binary of weights) somewhere，请创建 neutraltalk2/model/ 并放在里面，configuration保存成 .Txt 档。（不要放别的地方，因为它的调用路径就是这个）
+
+c)I just want to caption images（我要看看跑好的模型怎么用）
+
+1.作者给了两个做好的模型，我们要下载"I only have CPU"里面这个（第3要下载的），并且使用 -gpuid -1 这个命令 to tell the script to run on CPU。（具体用法见原文）
+2.进入neutraltalk2文件夹，调用命令：$ th eval.lua -model /path/to/model（下载的模型存放路径放这里） -image_folder  /path/to/image/directory（要测试的图片存放路径放这里） -num_images 10。其他细节见原文
+
+d)I'd like to train my own network on MS COCO（用MScoco的数据，跑自己的模型）
+d和e这两部分我会一起说，因为他们的区别只在于数据库的不同。
+
+e)I'd like to train on my own data（用自己的的数据，跑自己的模型）
+neutraltalk2读取训练图片的逻辑是：数据库安置——>图片目录（.json档案）导入程序——>程序按照目录读入图片和注释——>图片前处理工作——>开始训练——>训练完毕（保存成checkpoint，就像之前给的一样）——>进行测试/验证
+
+i.数据库安置
+使用MScoco图片库首先要下载图片库 http://mscoco.org/dataset/#download ，	使用IPython notebook （想要用的话也要安装哦）来运行	neuraltalk2/coco/coco_preprocess.ipynb这一文件，它会download the caption 	anotations for coco and preprocess them into an hdf5 file and a json file，这个文档 	contains a large list of image paths, and raw captions for each image, of the form: 
+[{ "file_path": "neuraltalk2/coco/images/COCO_train2014_000000239811.jpg", "captions": ["A white bicycle anchored between the parking posts.", "A solid white bicycle is parked next to statues on a sidewalk.","A white bicycle leans against a post on the sidewalk."] },{ "file_path": "neuraltalk2/coco/images/COCO_train2014_000000239811.jpg", "captions": ["A white bicycle anchored between the parking posts.", "A solid white bicycle is parked next to statues on a sidewalk.","A white bicycle leans against a post on the sidewalk."] }, ...] （如果不会用程式做，那只好自己手写啊！！）
+很明显，如果想用自己的数据，那就要按照MScoco的形式建立自己的数据库，并且给出相应的文档（怎么建立？我也不知道 =。=）
+不过我会上传我自己手动做的测试库，最后时候附上下载地址。
+
+ii.让模型读入图片（热身）
+python prepro.py --input_json coco/coco_raw.json放入生成的.json档 --num_val 	5000 --num_test 5000 	--images_root coco/images图片存放文件夹 	--word_count_threshold 5描述的个数（我不确定） --output_json coco/cocotalk.json	生成的.json档位置 --output_h5 coco/cocotalk.h5生成的.h5位置
+iii.训练！！！（别忘记下载VGG-16，否则没办法跑）
+th train.lua -input_h5 coco/cocotalk.h5 -input_json coco/cocotalk.json（放入刚刚生	成的.json 和 .h5 文件）
+
+iv.训练完毕
+训练完毕会生成checkpoint model (好像是每两千次生成一个model，所以说	data很	少就得不到这个checkpoint_model)
+
+v.测试
+这部分的做法就和c一样了，只不过model替换成我们自己训练的。
+
+4..写在最后：
+
+1)我做测试的数据包和测试结果还有bug情况都会上传到我的GitHub：
+https://github.com/ThomasYang1222/20161214_Finalproject_deeplearning
+大家可以自行尝试。
+
+2)Github有专案管理白板，也许我们可以用这个方式列清我们的项目规划，如果老师能指点一二的话那更好不过。
+
+
+
+
